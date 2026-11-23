@@ -8,13 +8,11 @@
   :root{
     --bg:#f4f5f7; --card:#fff; --text:#1c2430; --muted:#5d6978; --line:#d9dee5;
     --accent:#d9480f; --accent-text:#fff; --chip:#e8ebf0; --chip-on:#1c2430; --chip-on-text:#fff;
-    --ok:#2b8a3e;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#14181d; --card:#1e242c; --text:#eef1f5; --muted:#9aa5b4; --line:#323a45;
       --accent:#ff7a3d; --accent-text:#1a1008; --chip:#2a323c; --chip-on:#eef1f5; --chip-on-text:#14181d;
-      --ok:#51cf66;
     }
   }
   *{box-sizing:border-box}
@@ -26,30 +24,43 @@
   .chip{border:0;background:var(--chip);color:var(--text);padding:9px 13px;border-radius:999px;font-size:14px;cursor:pointer}
   .chip.on{background:var(--chip-on);color:var(--chip-on-text)}
   .btn{border:0;border-radius:10px;padding:13px 16px;font-size:16px;font-weight:600;cursor:pointer}
-  .primary{background:var(--accent);color:var(--accent-text);width:100%}
+  .primary{background:var(--accent);color:var(--accent-text);width:100%;margin-top:12px}
   .ghost{background:var(--chip);color:var(--text);font-weight:500;font-size:14px;padding:9px 12px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
-  .card label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-  textarea{width:100%;min-height:96px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--text);font:inherit;padding:10px}
+  .card label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+  .card label:first-child{margin-top:0}
+  textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--text);font:inherit;padding:10px}
+  textarea{min-height:96px;resize:vertical}
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .row .btn{flex:1}
   .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:10px}
+  .match{color:var(--muted);font-size:13px;margin-top:6px;min-height:18px}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--chip-on);color:var(--chip-on-text);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
   .toast.show{opacity:1}
   details{margin-top:18px}
   summary{cursor:pointer;color:var(--muted);font-size:14px}
-  .hist{list-style:none;padding:0;margin:10px 0}
-  .hist li{border-bottom:1px solid var(--line);padding:8px 0;font-size:14px}
-  .hist small{color:var(--muted)}
+  .list{list-style:none;padding:0;margin:10px 0}
+  .list li{border-bottom:1px solid var(--line);padding:8px 0;font-size:14px;display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+  .list small{color:var(--muted)}
+  .del{border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:0 4px}
   .empty{display:none;color:var(--muted);text-align:center;margin-top:20px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Haz ID Generator</h1>
-  <p class="sub">Pick what you worked on, tap Generate, edit it to match what you actually saw, then copy.</p>
+  <p class="sub">Tap what you worked on (or type it), tap Generate, edit it to match what you actually saw, then copy.</p>
 
   <div class="chips" id="chips"></div>
+
+  <div class="card">
+    <label for="job">What I worked on (optional)</label>
+    <input type="text" id="job" placeholder="e.g. wet well, H2O2 skid, driving, panel">
+    <div class="match" id="match"></div>
+    <label for="site">Site (optional)</label>
+    <input type="text" id="site" placeholder="e.g. Forest Brook">
+  </div>
+
   <button class="btn primary" id="gen">Generate Hazard ID</button>
 
   <div id="result" style="display:none">
@@ -66,15 +77,30 @@
     <div class="row">
       <button class="btn ghost" id="both">Copy both</button>
       <button class="btn ghost" id="used">Mark as used</button>
-      <button class="btn ghost" id="another">Another</button>
+      <button class="btn ghost" id="another">Different one</button>
     </div>
     <div class="meta"><span id="cat"></span><span id="left"></span></div>
   </div>
-  <div class="empty" id="empty">Every idea in the selected categories has been used. Reset history below or pick more categories.</div>
+  <div class="empty" id="empty">Every idea in this category has been used. Pick another, add your own, or reset history below.</div>
+
+  <details>
+    <summary>Add my own idea (<span id="ccount">0</span> saved)</summary>
+    <div class="card">
+      <label for="ncat">Category (pick one or type a new one)</label>
+      <input type="text" id="ncat" list="catlist" placeholder="e.g. Wet well, or a new name like Sampling">
+      <datalist id="catlist"></datalist>
+      <label for="nsaw">What I saw</label>
+      <textarea id="nsaw" placeholder="The unsafe condition"></textarea>
+      <label for="nfix">Corrective action</label>
+      <textarea id="nfix" placeholder="What I did to fix it"></textarea>
+      <div class="row"><button class="btn ghost" id="addown">Save my idea</button></div>
+    </div>
+    <ul class="list" id="clist"></ul>
+  </details>
 
   <details>
     <summary>History (<span id="hcount">0</span> used)</summary>
-    <ul class="hist" id="hist"></ul>
+    <ul class="list" id="hist"></ul>
     <button class="btn ghost" id="reset">Reset history</button>
   </details>
 </div>
@@ -157,46 +183,85 @@ const LIB = {
   ]
 };
 
-const KEY = "hazid_used_v1";
-const CATKEY = "hazid_cats_v1";
-const cats = Object.keys(LIB);
-let selected = new Set(JSON.parse(localStorage.getItem(CATKEY) || "null") || cats);
-let used = JSON.parse(localStorage.getItem(KEY) || "[]");
+const KEY = "hazid_used_v1", CKEY = "hazid_custom_v1", SKEY = "hazid_site_v1";
+const KW = {
+  "Lift station / wet well": ["lift station","wet well","wetwell","hatch","pump station","grate","vault","force main","manhole","lift"],
+  "Biofilter / scrubber": ["biofilter","bio filter","scrubber","media","blower","fan","irrigation","duct","wet scrubber"],
+  "Carbon vessel": ["carbon","vessel","gac","manway","dp gauge","spent"],
+  "Chemical (H2O2 / Bioxide)": ["chemical","h2o2","peroxide","bioxide","calcium nitrate","tank","pump head","tubing","feed","skid","injection","eyewash","drum","dosing"],
+  "Truck / driving": ["truck","drive","driving","f-250","backing","tire","road","highway","traffic"],
+  "Housekeeping / site": ["clean","trash","housekeeping","tools","hose","light","debris","sample","sampling","walkway","gate","fence"],
+  "Electrical / equipment": ["panel","electrical","wire","wiring","breaker","cord","motor","disconnect","lockout","loto","vfd","plc","pump"],
+  "Weather / Florida": ["heat","hot","rain","storm","lightning","snake","ant","wasp","mosquito","weather","flood","sun","gator"]
+};
+function load(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch(e){ return d; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+let used = load(KEY, []);
+let custom = load(CKEY, []);
+let selected = null;
 let current = null;
-
 const $ = id => document.getElementById(id);
-const id = (c,i) => c + "#" + i;
-const save = () => { localStorage.setItem(KEY, JSON.stringify(used)); localStorage.setItem(CATKEY, JSON.stringify([...selected])); };
 
-function renderChips(){
-  $("chips").innerHTML = "";
-  cats.forEach(c => {
-    const b = document.createElement("button");
-    b.className = "chip" + (selected.has(c) ? " on" : "");
-    b.textContent = c;
-    b.onclick = () => { selected.has(c) ? selected.delete(c) : selected.add(c); save(); renderChips(); updateLeft(); };
-    $("chips").appendChild(b);
-  });
+function allCats(){
+  const s = new Set(Object.keys(LIB));
+  custom.forEach(c => s.add(c.cat));
+  return [...s];
 }
-function pool(){
+function entries(c){
   const out = [];
-  cats.forEach(c => { if(!selected.has(c)) return;
-    LIB[c].forEach((e,i) => { if(!used.some(u => u.id === id(c,i))) out.push({c,i,saw:e[0],fix:e[1]}); });
-  });
+  (LIB[c] || []).forEach((e,i) => out.push({id: c + "#" + i, c, saw: e[0], fix: e[1]}));
+  custom.filter(x => x.cat === c).forEach(x => out.push({id: "custom#" + x.id, c, saw: x.saw, fix: x.fix}));
   return out;
 }
-function updateLeft(){ $("left").textContent = pool().length + " unused ideas left"; }
+function pool(){
+  if(!selected) return [];
+  return entries(selected).filter(e => !used.some(u => u.id === e.id));
+}
+function matchCat(text){
+  const t = " " + text.toLowerCase() + " ";
+  let best = null, bestScore = 0;
+  allCats().forEach(c => {
+    let s = 0;
+    if(t.includes(c.toLowerCase())) s += 5;
+    (KW[c] || []).forEach(k => { if(t.includes(k)) s += 1; });
+    if(s > bestScore){ best = c; bestScore = s; }
+  });
+  return best;
+}
+function renderChips(){
+  $("chips").innerHTML = "";
+  allCats().forEach(c => {
+    const b = document.createElement("button");
+    b.className = "chip" + (c === selected ? " on" : "");
+    b.textContent = c;
+    b.onclick = () => { selected = (selected === c) ? null : c; $("match").textContent = ""; renderChips(); updateLeft(); };
+    $("chips").appendChild(b);
+  });
+  $("catlist").innerHTML = allCats().map(c => '<option value="' + c.replace(/"/g,"&quot;") + '">').join("");
+}
+function updateLeft(){
+  $("left").textContent = selected ? pool().length + " unused ideas left" : "";
+}
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function toast(t){ const el = $("toast"); el.textContent = t; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1500); }
+
 function generate(){
+  if(!selected){ toast("Tap a category first"); return; }
   const p = pool();
   if(!p.length){ $("result").style.display = "none"; $("empty").style.display = "block"; return; }
   $("empty").style.display = "none";
-  current = p[Math.floor(Math.random() * p.length)];
-  $("saw").value = current.saw; $("fix").value = current.fix;
+  let choices = p;
+  if(current && p.length > 1) choices = p.filter(e => e.id !== current.id);
+  current = choices[Math.floor(Math.random() * choices.length)];
+  const site = $("site").value.trim();
+  save(SKEY, site);
+  $("saw").value = (site ? "At " + site + ": " : "") + current.saw;
+  $("fix").value = current.fix;
   $("cat").textContent = current.c;
   $("result").style.display = "block";
   updateLeft();
 }
-function toast(t){ const el = $("toast"); el.textContent = t; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1400); }
 async function copy(text){
   try { await navigator.clipboard.writeText(text); }
   catch(e){ const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
@@ -205,20 +270,49 @@ async function copy(text){
 function renderHist(){
   $("hcount").textContent = used.length;
   $("hist").innerHTML = used.slice().reverse().map(u =>
-    "<li>" + u.saw.replace(/</g,"&lt;") + "<br><small>" + u.date + " · " + u.cat + "</small></li>").join("");
+    "<li><span>" + esc(u.saw) + "<br><small>" + u.date + " · " + esc(u.cat) + "</small></span></li>").join("");
 }
+function renderCustom(){
+  $("ccount").textContent = custom.length;
+  $("clist").innerHTML = custom.map(x =>
+    '<li><span>' + esc(x.saw) + '<br><small>' + esc(x.cat) + '</small></span><button class="del" data-id="' + x.id + '" title="Delete">×</button></li>').join("");
+  document.querySelectorAll(".del").forEach(b => b.onclick = () => {
+    custom = custom.filter(x => String(x.id) !== b.dataset.id);
+    save(CKEY, custom);
+    if(selected && !allCats().includes(selected)) selected = null;
+    renderCustom(); renderChips(); updateLeft();
+  });
+}
+
 document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copy($(b.dataset.copy).value));
 $("gen").onclick = generate;
 $("another").onclick = generate;
 $("both").onclick = () => copy("Unsafe condition: " + $("saw").value + "\n\nCorrective action: " + $("fix").value);
 $("used").onclick = () => {
   if(!current) return;
-  used.push({id:id(current.c,current.i), saw:$("saw").value, cat:current.c, date:new Date().toLocaleDateString()});
-  save(); renderHist(); updateLeft(); toast("Saved to history");
+  used.push({id: current.id, saw: $("saw").value, cat: current.c, date: new Date().toLocaleDateString()});
+  save(KEY, used); renderHist(); updateLeft(); toast("Saved to history");
 };
-$("reset").onclick = () => { if(confirm("Clear all history?")){ used = []; save(); renderHist(); updateLeft(); } };
+$("reset").onclick = () => { if(confirm("Clear all history?")){ used = []; save(KEY, used); renderHist(); updateLeft(); } };
+$("job").oninput = () => {
+  const txt = $("job").value.trim();
+  if(!txt){ $("match").textContent = ""; return; }
+  const m = matchCat(txt);
+  if(m){ selected = m; $("match").textContent = "Matched: " + m; renderChips(); updateLeft(); }
+  else { $("match").textContent = "No match yet. Tap a category, or save your own idea below."; }
+};
+$("addown").onclick = () => {
+  const cat = $("ncat").value.trim(), saw = $("nsaw").value.trim(), fix = $("nfix").value.trim();
+  if(!cat || !saw || !fix){ toast("Fill in category, what you saw, and the fix"); return; }
+  const existing = allCats().find(c => c.toLowerCase() === cat.toLowerCase()) || cat;
+  custom.push({id: Date.now(), cat: existing, saw, fix});
+  save(CKEY, custom);
+  $("nsaw").value = ""; $("nfix").value = "";
+  renderCustom(); renderChips(); updateLeft(); toast("Saved");
+};
 
-renderChips(); renderHist(); updateLeft();
+$("site").value = load(SKEY, "");
+renderChips(); renderHist(); renderCustom(); updateLeft();
 </script>
 </body>
 </html>
