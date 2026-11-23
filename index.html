@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haz ID Generator</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#fff; --text:#1c2430; --muted:#5d6978; --line:#d9dee5;
+    --accent:#d9480f; --accent-text:#fff; --chip:#e8ebf0; --chip-on:#1c2430; --chip-on-text:#fff;
+    --ok:#2b8a3e;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14181d; --card:#1e242c; --text:#eef1f5; --muted:#9aa5b4; --line:#323a45;
+      --accent:#ff7a3d; --accent-text:#1a1008; --chip:#2a323c; --chip-on:#eef1f5; --chip-on-text:#14181d;
+      --ok:#51cf66;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:680px;margin:0 auto;padding:16px 14px 60px}
+  h1{font-size:22px;margin:4px 0 2px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .chip{border:0;background:var(--chip);color:var(--text);padding:9px 13px;border-radius:999px;font-size:14px;cursor:pointer}
+  .chip.on{background:var(--chip-on);color:var(--chip-on-text)}
+  .btn{border:0;border-radius:10px;padding:13px 16px;font-size:16px;font-weight:600;cursor:pointer}
+  .primary{background:var(--accent);color:var(--accent-text);width:100%}
+  .ghost{background:var(--chip);color:var(--text);font-weight:500;font-size:14px;padding:9px 12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+  .card label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  textarea{width:100%;min-height:96px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--text);font:inherit;padding:10px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .row .btn{flex:1}
+  .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:10px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--chip-on);color:var(--chip-on-text);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.show{opacity:1}
+  details{margin-top:18px}
+  summary{cursor:pointer;color:var(--muted);font-size:14px}
+  .hist{list-style:none;padding:0;margin:10px 0}
+  .hist li{border-bottom:1px solid var(--line);padding:8px 0;font-size:14px}
+  .hist small{color:var(--muted)}
+  .empty{display:none;color:var(--muted);text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Haz ID Generator</h1>
+  <p class="sub">Pick what you worked on, tap Generate, edit it to match what you actually saw, then copy.</p>
+
+  <div class="chips" id="chips"></div>
+  <button class="btn primary" id="gen">Generate Hazard ID</button>
+
+  <div id="result" style="display:none">
+    <div class="card">
+      <label for="saw">What I saw (unsafe condition)</label>
+      <textarea id="saw"></textarea>
+      <div class="row"><button class="btn ghost" data-copy="saw">Copy</button></div>
+    </div>
+    <div class="card">
+      <label for="fix">Corrective action</label>
+      <textarea id="fix"></textarea>
+      <div class="row"><button class="btn ghost" data-copy="fix">Copy</button></div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="both">Copy both</button>
+      <button class="btn ghost" id="used">Mark as used</button>
+      <button class="btn ghost" id="another">Another</button>
+    </div>
+    <div class="meta"><span id="cat"></span><span id="left"></span></div>
+  </div>
+  <div class="empty" id="empty">Every idea in the selected categories has been used. Reset history below or pick more categories.</div>
+
+  <details>
+    <summary>History (<span id="hcount">0</span> used)</summary>
+    <ul class="hist" id="hist"></ul>
+    <button class="btn ghost" id="reset">Reset history</button>
+  </details>
+</div>
+<div class="toast" id="toast">Copied</div>
+
+<script>
+const LIB = {
+  "Lift station / wet well": [
+    ["The wet well hatch was left unlatched and the safety grate underneath was not fully seated, leaving an open fall hazard.","Closed and latched the hatch, reseated the grate, and notified the client so the hinge and latch can be repaired."],
+    ["Strong H2S odor was present at the wet well opening when I arrived.","Stayed out of the wet well, checked the air with a 4-gas monitor from outside, and let the area ventilate before starting any work."],
+    ["Grease and algae had built up on the concrete slab around the wet well, making it slippery.","Scrubbed the slab and rinsed it off, wore non-slip boots, and let the client know the area needs regular cleaning."],
+    ["Tall weeds and brush were covering the hatch and the walkway to it, hiding trip hazards.","Cut back the vegetation to clear a safe walking path and checked the ground for holes and snakes before working."],
+    ["The gate padlock was missing and the site was left unsecured.","Secured the gate with a company lock and reported it to the client so the site is not left open to the public."],
+    ["The concrete pad near the control panel had sunk and cracked, creating a trip hazard.","Marked the area with paint and a cone, walked around it, and reported the pad to the client for repair."],
+    ["Fire ants had built a mound at the base of the wet well hatch.","Treated the mound with ant killer from a distance, wore boots with pants tucked in, and inspected the area before kneeling."]
+  ],
+  "Biofilter / scrubber": [
+    ["Part of the biofilter media had settled and formed a soft crust over a void, which could give way under foot.","Stayed off the media, marked off the soft area with cones, and told the client so the media can be repaired."],
+    ["Water from a leaking irrigation line was pooling on the ground next to the biofilter, making the area slick.","Shut off the irrigation zone, cleaned up the area, and reported the leak for repair."],
+    ["The guard on the blower belt was loose and not fully secured.","Locked out the blower, reinstalled and tightened the guard, then restarted the unit."],
+    ["The blower was loud and there was no hearing protection sign posted at the unit.","Wore ear plugs while working and posted a hearing protection sign near the blower."],
+    ["Low-hanging duct work near the walkway was a head-strike hazard.","Padded and marked the duct with bright tape and let the client know about the clearance issue."],
+    ["A wasp nest had formed on the blower housing.","Sprayed the nest from a safe distance with wasp spray, waited for it to clear, and then removed it before working."],
+    ["The access door to the scrubber was sticking and had to be forced open.","Cleaned and lubricated the latch and hinges, and noted the door for repair so no one gets pinched."]
+  ],
+  "Carbon vessel": [
+    ["Spent carbon had spilled on the ground around the vessel, creating a dust and slip hazard.","Wet down the dust, swept and bagged the carbon, and wore a dust mask and gloves while cleaning up."],
+    ["Bolts were missing from the vessel manway cover.","Installed the correct bolts, torqued them evenly, and checked all other covers on the vessel."],
+    ["The differential pressure gauge was cracked and unreadable.","Tagged the gauge as out of service, reported it, and replaced it with a good gauge."],
+    ["A condensate drain line was dripping onto the walkway.","Tightened the fitting, rerouted the drip away from the walkway, and cleaned up the wet spot."],
+    ["The ladder to the top of the vessel had corroded rungs.","Did not climb it, tagged it as unsafe, and reported it so it can be repaired or replaced."],
+    ["A vessel access port was left open with no warning sign posted.","Closed and secured the port and posted a warning sign about oxygen-deficient air inside carbon vessels."],
+    ["The flex hose on the carbon inlet was cracked and sagging.","Shut the system down, replaced the hose, and checked the clamps before restarting."]
+  ],
+  "Chemical (H2O2 / Bioxide)": [
+    ["There was residue on the secondary containment around the chemical tank, which could hide a small leak.","Cleaned the containment area with water, wore chemical gloves and a face shield, and checked all fittings for leaks."],
+    ["The label on a chemical line was faded and unreadable.","Replaced it with a new label and hazard placard so everyone can identify the product."],
+    ["The eyewash station was dry and the cover was blocked.","Cleared the area, flushed and refilled the eyewash, and reported it to the client."],
+    ["A feed pump head was weeping chemical at the fitting.","Shut off the pump, wore PPE, tightened and replaced the fitting, and cleaned up the spill."],
+    ["Calcium nitrate had crystallized and spilled on the ground, creating a slippery spot.","Rinsed the area with water, contained the runoff, and wore gloves and eye protection during cleanup."],
+    ["Chemical feed tubing was cracked from sun exposure.","Replaced the tubing with UV-rated line and shaded it to extend its life."],
+    ["Oily rags and trash were stored near the hydrogen peroxide tank.","Removed the rags and trash from the area and kept combustible materials away from the oxidizer."],
+    ["I was handling peroxide fittings without a face shield on.","Stopped, put on the face shield and chemical gloves, and kept them on for the rest of the job."]
+  ],
+  "Truck / driving": [
+    ["I had to back into a tight lift station with blind spots and no spotter.","Got out and walked around the truck first, backed slowly with the window down, and will pull through where possible."],
+    ["The shoulder was narrow with fast traffic right next to where I had to park.","Used flashers and cones, parked inside the site when possible, and exited on the side away from traffic."],
+    ["Drums and tools in the truck bed were not secured.","Strapped everything down and re-checked the load before driving."],
+    ["I noticed myself looking at the phone while navigating.","Mounted the phone and used voice navigation so my eyes stay on the road."],
+    ["The site entrance was muddy and slick after rain.","Slowed down, engaged 4WD, and avoided turning sharply until back on solid ground."],
+    ["Heavy rain and low visibility on the drive between sites.","Slowed down, increased following distance, and waited for the worst of it to pass."],
+    ["A truck tire was low on pressure at the start of the day.","Checked all tires, inflated them to the proper pressure, and will add this to my daily walk-around."]
+  ],
+  "Housekeeping / site": [
+    ["Hoses and tools had been left on the ground across the walkway.","Picked them up, coiled the hoses, and stored everything in its place."],
+    ["Trash and debris had piled up around the equipment pad.","Cleared the debris and bagged the trash for disposal."],
+    ["The area light was burned out, leaving the pad dark.","Used a headlamp while working and reported the light for replacement."],
+    ["An oily absorbent pad was left on the ground next to the equipment.","Bagged the pad for proper disposal and replaced it with a fresh one."],
+    ["A storage cabinet door was left hanging open at head height.","Closed and latched the door and reorganized the contents."],
+    ["Sharp tools like knives and blades were left out in the open.","Put them away in the toolbox and covered the blades."],
+    ["Loose gravel and rocks on the access path created a slipping hazard.","Raked the path clear and told the client the path may need fresh material."]
+  ],
+  "Electrical / equipment": [
+    ["The control panel door was left unlatched and the cover screws were missing.","Closed and latched the door, replaced the screws, and made sure the panel was secure."],
+    ["Conduit had pulled loose from the panel and wires were exposed.","Stayed clear, shut off power at the disconnect, tagged it out, and reported it for repair."],
+    ["An extension cord with a damaged jacket was in use.","Removed it from service, replaced it with a good cord, and discarded the bad one."],
+    ["Water was getting into the panel because the gasket was missing.","Sealed the opening temporarily, dried out the panel, and reported it for a new gasket."],
+    ["The coupling guard was off a pump and it was running.","Shut down and locked out the pump, reinstalled the guard, then restarted."],
+    ["I found a disconnect without a lock or tag while equipment was being worked on.","Applied my lock and tag and verified zero energy before starting work."],
+    ["An extension cord was lying in standing water near the pad.","Unplugged it, moved it out of the water, and used a GFCI-protected outlet."]
+  ],
+  "Weather / Florida": [
+    ["It was very hot in the afternoon and I had been working in direct sun without a break.","Took a break in the shade, drank water, and rescheduled the heavy work for cooler hours."],
+    ["Lightning was in the area while I was working outside.","Stopped work, waited in the truck until the storm passed, and finished afterward."],
+    ["Standing water on the pad was breeding mosquitoes.","Wore repellent, drained what I could, and reported the drainage issue."],
+    ["I spotted a snake near the equipment pad.","Kept my distance, let it move off, and checked the area before reaching into any boxes."],
+    ["Heavy rain had flooded the access road and the pad was slick.","Walked in slowly, wore non-slip boots, and avoided working near the flooded area."],
+    ["Wasps and hornets were flying around the control panel.","Treated the nest from a distance and waited before opening the panel."],
+    ["The ground near a retention pond had unstable, soft edges.","Stayed back from the edge and kept equipment on firm ground."]
+  ]
+};
+
+const KEY = "hazid_used_v1";
+const CATKEY = "hazid_cats_v1";
+const cats = Object.keys(LIB);
+let selected = new Set(JSON.parse(localStorage.getItem(CATKEY) || "null") || cats);
+let used = JSON.parse(localStorage.getItem(KEY) || "[]");
+let current = null;
+
+const $ = id => document.getElementById(id);
+const id = (c,i) => c + "#" + i;
+const save = () => { localStorage.setItem(KEY, JSON.stringify(used)); localStorage.setItem(CATKEY, JSON.stringify([...selected])); };
+
+function renderChips(){
+  $("chips").innerHTML = "";
+  cats.forEach(c => {
+    const b = document.createElement("button");
+    b.className = "chip" + (selected.has(c) ? " on" : "");
+    b.textContent = c;
+    b.onclick = () => { selected.has(c) ? selected.delete(c) : selected.add(c); save(); renderChips(); updateLeft(); };
+    $("chips").appendChild(b);
+  });
+}
+function pool(){
+  const out = [];
+  cats.forEach(c => { if(!selected.has(c)) return;
+    LIB[c].forEach((e,i) => { if(!used.some(u => u.id === id(c,i))) out.push({c,i,saw:e[0],fix:e[1]}); });
+  });
+  return out;
+}
+function updateLeft(){ $("left").textContent = pool().length + " unused ideas left"; }
+function generate(){
+  const p = pool();
+  if(!p.length){ $("result").style.display = "none"; $("empty").style.display = "block"; return; }
+  $("empty").style.display = "none";
+  current = p[Math.floor(Math.random() * p.length)];
+  $("saw").value = current.saw; $("fix").value = current.fix;
+  $("cat").textContent = current.c;
+  $("result").style.display = "block";
+  updateLeft();
+}
+function toast(t){ const el = $("toast"); el.textContent = t; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1400); }
+async function copy(text){
+  try { await navigator.clipboard.writeText(text); }
+  catch(e){ const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  toast("Copied");
+}
+function renderHist(){
+  $("hcount").textContent = used.length;
+  $("hist").innerHTML = used.slice().reverse().map(u =>
+    "<li>" + u.saw.replace(/</g,"&lt;") + "<br><small>" + u.date + " · " + u.cat + "</small></li>").join("");
+}
+document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copy($(b.dataset.copy).value));
+$("gen").onclick = generate;
+$("another").onclick = generate;
+$("both").onclick = () => copy("Unsafe condition: " + $("saw").value + "\n\nCorrective action: " + $("fix").value);
+$("used").onclick = () => {
+  if(!current) return;
+  used.push({id:id(current.c,current.i), saw:$("saw").value, cat:current.c, date:new Date().toLocaleDateString()});
+  save(); renderHist(); updateLeft(); toast("Saved to history");
+};
+$("reset").onclick = () => { if(confirm("Clear all history?")){ used = []; save(); renderHist(); updateLeft(); } };
+
+renderChips(); renderHist(); updateLeft();
+</script>
+</body>
+</html>
