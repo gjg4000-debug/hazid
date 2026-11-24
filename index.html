@@ -262,6 +262,14 @@ const LIB = {
     ["Scale and drips made the floor around the scrubber slick.","Cleaned the floor and placed a non-slip mat."],
     ["Bolts were missing on the scrubber access cover.","Replaced the bolts and checked the rest of the cover."],
     ["A strong chlorine smell came off the scrubber area.","Stepped away upwind, ventilated, and checked for chemicals being mixed before going back in."]
+  ],
+  "Ozone / aeration (Titus Twister)": [
+    ["A new Titus Twister aerator with ozone was running in the wet well, and opening the hatch released a heavy fog with an ozone smell.","Stepped back from the opening, stayed upwind, held my breath, and kept my face away from the hatch while it aired out."],
+    ["Fog and mist from the ozone-aerated wet well is aerosolized sewage, and I could breathe it in when I leaned over the hatch.","Opened the hatch, stepped back and let it clear before looking in, and kept my time at the opening short."],
+    ["My 4-gas meter does not read ozone, so I had no way to tell how much ozone was coming out of the wet well.","Kept my distance from the hatch, did not rely on the meter for ozone, and reported it so ozone monitoring can be looked at."],
+    ["Ozone can make some H2S sensors read low, so the reading at the ozone-treated wet well may not be trustworthy.","Treated the H2S reading with caution, stayed out of the well, and let my safety team know about the possible sensor issue."],
+    ["There was a new ozone system at the site and I had no safety data sheet or exposure information for it.","Reported the system to EHS and asked the client or installer for the SDS, any ozone alarm or shutoff, and PPE guidance."],
+    ["The fog from the ozone system could be a lung irritant, and I have heart and lung concerns.","Stayed upwind and out of the fog, limited time at the hatch, and reported the hazard so the team can review it."]
   ]
 };
 
@@ -283,7 +291,8 @@ const KW = {
   "Chemical delivery / transfer": ["delivery","transfer","fill","unloading","tanker","driver","hose connection"],
   "Public / third party": ["public","neighbor","trespass","dog","contractor","visitor","vandal"],
   "Working alone / fatigue": ["alone","fatigue","tired","long day","remote","signal","check in","first aid"],
-  "Wet scrubber chemicals": ["caustic","hypochlorite","bleach","sodium hydroxide","sump","recirc","wet scrubber"]
+  "Wet scrubber chemicals": ["caustic","hypochlorite","bleach","sodium hydroxide","sump","recirc","wet scrubber"],
+  "Ozone / aeration (Titus Twister)": ["ozone","titus","twister","aerator","aeration","fog"]
 };
 function load(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch(e){ return d; } }
 function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
